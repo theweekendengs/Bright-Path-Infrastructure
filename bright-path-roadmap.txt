@@ -1,0 +1,54 @@
+The Weekend Engineers
+To launch a basic fictitious infrastructure startup “Bright Path Infrastructure”, here’s a step-by-step guide that includes everything from purchasing a domain to deploying your infrastructure:
+
+1. Purchase a Domain
+Choose a domain registrar (e.g., Namecheap, GoDaddy, or Google Domains).
+
+Search for a domain name that fits your startup and is available.
+Purchase the domain (make sure to also set up domain privacy for security).
+Ensure you have access to the domain registrar's management panel for DNS settings.
+
+
+2 . Set Up a VPC Network in AWS
+Create a VPC: Set up a Virtual Private Cloud (VPC) within AWS to manage the networking of both public and private subnets.
+
+Define CIDR block (e.g., 10.0.0.0/16).
+
+Set up public and private subnets across different availability zones for high availability.
+Set up route tables and NAT gateways for routing internet traffic to private subnets.
+Deploy EC2 Instances: You may need EC2 instances for running backend services (e.g., a Django or FastAPI app).
+Configure Security Groups to control inbound and outbound traffic.
+Load Balancer: Use an Application Load Balancer (ALB) to distribute traffic across multiple EC2 instances.
+
+
+3. Set Up Active Directory (Internal Management)
+Launch an EC2 Instance with Windows Server: Set up a Windows Server EC2 instance in your private subnet.
+
+
+Install Active Directory: Use Server Manager to install the Active Directory Domain Services (AD DS) role.
+Configure Domain Controller: Promote the server to a domain controller and configure it for managing internal staff.
+Add Users and Groups: Set up organizational units (OUs) for employees and configure necessary groups and policies.
+
+
+4. Set Up a Ticket System (Open Source)
+Choose an Open Source Ticketing System: Consider tools like osTicket.
+
+Set Up the Ticketing System: Deploy it in your AWS infrastructure (you can use EC2 or AWS Fargate for containerized deployment).
+Integrate with AWS: Set up email notifications and integrate with your communication tools (like Slack or Microsoft Teams).
+
+
+5. Set Up Monitoring
+LibreNMS: To monitor switches and VMs, install LibreNMS, an open-source network monitoring tool.
+CloudWatch: Set up AWS CloudWatch to monitor your EC2 instances, load balancers, and other AWS resources.
+Set up Alarms: Set up CloudWatch Alarms to notify your team if there are any performance or security issues.
+
+
+6. Set Up IT Asset Management
+Deploy Asset Management System: Choose an open-source IT asset management solution such as Snipe-IT for managing hardware and software.
+
+Integrate with Active Directory: For ease of management, you can integrate the asset management system with your Active Directory to automatically sync employee information.
+Launch the Website: Ensure the website is live, secure, and accessible by testing the domain and SSL configuration.
+
+Monitor System Performance: Use the monitoring tools you set up (CloudWatch, Graylog, LibreNMS) to continuously monitor the performance of your infrastructure.
+Get Feedback: As your fictitious company grows, gather feedback on the systems in place and continuously improve them.
+

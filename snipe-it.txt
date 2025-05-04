@@ -1,0 +1,197 @@
+# You’ve been recently hired as a help desk associate to a startup SMB tech company. Upon the first two weeks, you immediately realize the way IT assets are being managed is extremely outdated. Long are the days of excel proficiency for keeping up with the equipment deployed amongst your workforce. The company has systems they can leverage (such as JIRA and ServiceNow), but don’t want to add additional license complexities to their plate.
+
+# After researching the world wide web, you proposed the idea of adopting an open source solution that was scalable and cost effective. The name of this solution is called SNIPE-IT, and if you’re self hosting the application it’s free of charge. 
+
+# There are a few nuances associated with the product, but there are experienced co-workers in the department that have launched similar open source products.  Click this link for additional details: https://snipeitapp.com/pricing 
+
+# Hosting
+# Your company currently uses Amazon Web Services (AWS) to manage and deploy workloads, so we will leverage their account. However, there are going to be some things we will want to focus on because it’s not included with the self-hosted option. The following responsibilities that we will need to be responsible for are the following:
+
+# API Integration Help: The paid options offer the ability to speak to a team member of SNIPE-IT for API support, but that’s only available for enterprise support customers. Instead we will rely on documentation to get the job done.
+
+
+# TLS (SSL): There are a couple of different ways we can approach SSL certificates; we can either use the AWS certificate manager or leverage letsencrypt. Either way, we will be responsible for the SSL cert.
+
+
+# Automated Backups: Since, we are not relying on their hosting, we can set a backup to be performed daily through AWS.
+
+
+# Server Maintenance: This is another feature that is included if we decided to use their hosting platform. However, we will be updating/upgrading our server on our own, when needed.
+
+# Requirements
+
+# Depending on the operating system, your requirements will differ. For this exercise, we will be using a Linux server. However, if you’re interested in the requirements for Windows Server, please click here https://snipe-it.readme.io/docs/requirements .
+
+# Getting Started (LAMP)
+
+# We are going to install a LAMP stack, for those that are unfamiliar with the acronym, it stands for Linux, Apache, MySQL, Php. These are going to be the technologies that we use before adding the SNIPE-IT application.
+# Installing Linux
+# The first thing we need to do is visit the AWS console and launch a linux server to host our application. I will spare you the details on how to launch an ec2 instance, but will provide a link to something I've written before if you’re interested. I will provide the instance details though:
+
+
+# Ubuntu 20.04 LTS
+# t2.Micro instance type
+# 8 GiB volume Size
+# Allow SSH, HTTP, HTTPS from your IP for your security group
+
+# After your instance is created, wait for the running state and status check to be good, and we are now ready to get started.
+
+# Installing Apache
+# The following commands below will install apache2:
+
+sudo apt install apache2 -y
+systemctl start apache2.service && systemctl enable apache2.service
+
+apache2 -v
+
+# Check the landing page: visit the Public IPv4 address found in the ec2 instance console and enter it into the browser.
+
+# Pro Tip: If you’re running into an issue where you’re unable to view the landing page, chances are your firewall is enabled. Let’s open HTTP(80) & HTTPS (443), then reload the firewall.
+
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw reload
+
+# Next, we will need to enable an apache2 module that SNIPE-IT relies on.
+
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+
+# Installing MySQL / MariaDB
+# Let’s proceed with installing the database portion. Providing the following commands, we will be installing the database server and client.
+
+sudo apt install mariadb-server mariadb-client -y
+sudo systemctl start mariadb && sudo systemctl enable mariadb
+sudo systemctl status mariadb
+
+# The installation will need to be secured by running the following command:
+
+sudo mysql_secure_installation
+
+# When asked for the password, simply press enter, because there isn’t a password yet. Next, we want to set the root password. Don’t allow “remote” and “anonymous” access, and finally delete the test database.
+
+# Install PHP
+# Run the following commands to install PHP and its related extensions.
+
+sudo apt install php php-cli php-fpm php-json php-common php-mysql php-zip php-gd php-mbstring php-curl php-xml php-pear php-bcmath
+
+# Next, run the following commands once more to double-check all needed extensions for snipe-it are added.
+
+sudo apt install php php-bcmath php-bz2 php-intl php-gd php-mbstring php-mysql php-zip php-opcache php-pdo php-calendar php-ctype php-exif php-ffi php-fileinfo php-ftp php-iconv php-intl php-json php-mysqli php-phar php-posix php-readline php-shmop php-sockets php-sysvmsg php-sysvsem php-sysvshm php-tokenizer php-curl php-ldap -y
+
+# Installing PHP Composer
+# Composer is a free and open source package and dependency manager for PHP. Its primary job is to facilitate the distribution and maintenance of PHP packages.
+
+# This command will install PHP:
+
+sudo curl -sS https://getcomposer.org/installer | php
+
+#Next, move the composer installer to usr/local/bin:
+
+sudo mv composer.phar /usr/local/bin/composer
+
+#Create Database
+#When we are creating the database with the needed privileges, we will first launch MySQL with the root user. Then use the password created during the mysql_secure_installation step.
+
+mysql -u root -p
+
+#Now, I ran into an issue that didn’t allow me to properly login, so if you’re following the same steps as me, try running “sudo” before your command and it should allow you in.
+
+#Next, we will create the database, administrative user, password, and allot the necessary permissions. Feel free to modify the below script, to something that suits your situation.
+
+CREATE DATABASE itassets;
+CREATE USER snipeituser@localhost IDENTIFIED BY 'Password1';
+GRANT ALL PRIVILEGES ON itassets.* TO snipeituser’@’localhost;
+FLUSH PRIVILEGES;
+EXIT;
+
+#Snipe-IT Installation
+
+#Before we install, let's switch locations to the website root directory because we will want to install the latest repo version of Snipe there.
+
+#Next, we will clone the Snipe repo.
+
+git clone https://github.com/snipe/snipe-it
+
+#After the clone successfully reaches 100%, now it’s time to make a few changes. Lets change into the snipe-it directory by running the following command:
+
+cd /var/www/snipe-it
+
+#Our primary configuration file is titled “.env.example”, we will want to copy that existing file, before making any needed changes. Essentially the original file will serve as a backup, just in case we mess something up.
+
+sudo cp /var/www/snipe-it/.env.example /var/www/snipe-it/.env
+
+#Now that the .env file is created, let's open it up in a text editor and modify a few things. Feel free to use the text editor of your choice, for this example I am going to use vim.
+
+sudo nano /var/www/snipe-it/.env
+
+#I will make modifications to the following:
+
+APP_URL=http://ipaddress
+APP_TIMEZONE=’America/UTC’
+
+DB_DATABASE=itassets
+DB_USERNAME=administrator
+DB_PASSWORD=Password
+
+The app URL is going to be either your domain name, or leave it blank. The public IPv4 address will be used instead. Also, if you’re interested in debugging your application after installation, change “APP_DEBUG=true”.
+
+#Use the information you’ve created in the previous steps for your created database, and choose your desired time zone.
+
+#Next, we will want to do the following:
+#Change the ownership and permissions set of the subdirectories inside of SNIPE-IT.
+
+sudo chown -R www-data:www-data /var/www/snipe-it
+sudo chmod -R 755 /var/www/snipe-it
+
+#Earlier, we downloaded the composer extension manager, so now while inside of /var/www/snipe-it , lets install composer.
+
+sudo composer update --no-plugins --no-scripts
+sudo composer install --no-dev --prefer-source --no-plugins --no-scripts
+
+#By default, the application requires an app key, so to automate the generation, we will use the command below:
+
+php artisan key:generate
+
+#Updating the Virtual Host
+
+#Lastly, we need to defer to the snipe-it directory as the default. This can be done by disabling the default.conf file:
+
+sudo a2dissite 000-default.conf
+
+#Now, create a virtual host configuration for Snipe.
+
+sudo vim /etc/apache2/sites-available/snipe-it.conf
+
+#Use the text below, but modify it to fit your use case:
+
+<VirtualHost *:80>
+ServerName http://ipaddress
+DocumentRoot /var/www/snipe-it/public
+<Directory /var/www/snipe-it/public>
+Options Indexes FollowSymLinks MultiViews
+AllowOverride All
+Order allow,deny
+allow from all
+</Directory>
+</VirtualHost>
+
+#Save, and then enable the new configuration:
+
+a2ensite snipe-it.conf
+
+#Updating the Storage directory
+
+#Before restarting apache, we want to ensure we change the ownership and permission set for storage:
+
+sudo chown -R www-data:www-data ./storage
+sudo chmod -R 755 ./storage
+
+#Then do yourself the honors and restart apache2.
+
+sudo systemctl restart apache2.service
+
+#If all prior directions were followed, you should see the setup wizard if you enter the public ipv4 of your application server.
+
+
+

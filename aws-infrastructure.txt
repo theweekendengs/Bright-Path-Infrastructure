@@ -1,0 +1,82 @@
+# Brightpath Infrastructure Setup
+# This document outlines the setup and configuration of an Active Directory (AD) infrastructure deployed in the Ohio region on AWS. The infrastructure includes a single primary Domain Controller (DC), with an internal jump box used for secure access to the AD Controller and internal tools. The infrastructure leverages AWS VPCs, subnets, NAT Gateway, and security groups to ensure secure and efficient communication within the network.
+
+# VPC Configuration:
+Ohio VPC (10.0.0.0/16)
+Subnet 1 (Private): 10.0.128.0/20 – Database
+Subnet 2 (Private): 10.0.144.0/20 – Internal Tools/Domain Controller
+Subnet 3 (Public): 10.0.0.0/20
+Subnet 4 (Public): 10.0.16.0/20
+
+# NAT Gateway Setup:
+Ohio Region NAT Gateway: 3.23.16.189 in Public Subnet
+
+Routes outbound traffic from private subnets (10.0.128.0/20 and 10.0.144.0/20) to the internet.
+
+# Active Directory Domain Controllers:
+# Primary Domain Controller (Ohio):
+
+EC2 instance in the 10.0.144.0/20 subnet.
+
+# Promoted as the primary DC in the AD Forest.
+
+# Accessible via the NAT Gateway for internet access and replication.
+
+
+# Internal Jumpbox:
+
+
+EC2 instance in the 10.0.16.0/20 subnet (Public subnet).
+
+
+# Used to securely access the Active Directory Domain Controller and other internal tools.
+
+
+# RDP or SSH into the jumpbox, then access the Domain Controller via internal IP.
+
+
+
+# Security Groups:
+# Inbound rules on the Domain Controller:
+
+
+Allow traffic for RPC (port 135), LDAP (port 389), LDAPS (port 636), Kerberos (port 88), DNS (port 53).
+
+
+# Inbound rules on the Internal Jumpbox:
+
+
+Allow RDP (3389) access from trusted IPs (or through a VPN) for secure access.
+
+
+# Outbound rules:
+
+
+Allow all outbound traffic to the NAT Gateway for internet access.
+
+
+
+# Routing Tables:
+# Private Subnet Routes:
+
+# Routes all traffic to the NAT Gateway for outbound internet access.
+
+
+# Public Subnet Routes:
+
+
+# Routes traffic to the Internet Gateway for direct internet access.
+
+
+
+# Monitoring and Management:
+# Windows Event Logs will be used to monitor the health and status of the Domain Controller.
+
+
+# Active Directory Sites and Services will be configured for better management of the Domain Controller and replication settings.
+
+
+
+# Conclusion:
+# This infrastructure setup provides a secure and streamlined AD environment, all within the Ohio region, while leveraging internal jumpboxes and NAT Gateway for secure access and communication. The design ensures a private, controlled environment for the Domain Controller, with secure access routes and monitoring tools in place.
+

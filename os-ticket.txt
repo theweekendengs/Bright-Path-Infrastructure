@@ -1,0 +1,88 @@
+# OsTicket Installation
+
+# Install LAMP Stack
+
+# Update/Upgrade Apache2
+
+sudo apt update -y && sudo apt upgrade -y
+sudo apt install unzip -y
+sudo apt install apache2 -y
+sudo systemctl start apache2 && sudo systemctl enable apache2
+sudo systemctl status apache2
+
+# Install MYSQL
+
+sudo apt install mysql-server -y
+sudo systemctl start mysql.service && sudo systemctl enable mysql.service
+
+# Install Php and configure
+
+sudo apt install php8.3 libapache2-mod-php php8.3-common php8.3-cli php8.3-mbstring php8.3-bcmath php8.3-fpm php8.3-mysql php8.3-zip php8.3-gd php8.3-curl php8.3-xml -y
+
+php -v
+
+
+# Configure Mysql & Create Database
+
+sudo mysql
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
+quit;
+
+sudo mysql_secure_installation
+mysql -u root -p
+ALTER USER 'root'@'localhost' IDENTIFIED WITH auth_socket;
+quit;
+
+mysql -uroot -p
+
+CREATE DATABASE osticketdb;
+CREATE USER osticket@localhost IDENTIFIED BY 'osticket';
+GRANT ALL ON osticketdb.* TO osticket@localhost WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+
+quit;
+
+# Install OSTicket and Configure
+# Assume Root
+
+cd /var/www/html
+
+curl -s https://api.github.com/repos/osTicket/osTicket/releases/latest | grep browser_download_url | cut -d '"' -f 4 | wget -i -
+
+unzip osTicket-v1.18.1.zip -d osTicket
+
+cp /var/www/html/osTicket/upload/include/ost-sampleconfig.php /var/www/html/osTicket/upload/include/ost-config.php
+
+rm osTicket-v1.18.1.zip
+
+chown -R www-data:www-data /var/www/html/osTicket/
+
+find . -type d -exec chmod 755 {} \;
+find . -type f -exec chmod 644 {} \;
+
+cd /etc/apache2/sites-available/
+
+nano osticket.conf
+
+<VirtualHost *:80>
+ServerName yourdomain or ip
+DocumentRoot /var/www/html/osTicket/upload
+
+<Directory /var/www/html/osTicket>
+AllowOverride All
+</Directory>
+
+ErrorLog ${APACHE_LOG_DIR}/error.log
+CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>
+
+sudo a2enmod rewrite
+sudo a2ensite osticket.conf
+apachectl -t
+systemctl reload apache2
+
+# Access your osTicket server via the following URL: http://Your Domain or IP Address
+
+
+
